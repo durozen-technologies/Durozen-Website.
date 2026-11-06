@@ -1,0 +1,103 @@
+import os
+import logging
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from .config import settings
+from .database import engine, Base, SessionLocal
+from .models import Project
+from .seed_data import seed_default_projects
+from .routes import projects, auth, upload
+
+logger = logging.getLogger("durozen.main")
+logging.basicConfig(level=logging.INFO)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 1. Startup: Create tables if they do not exist
+    try:
+        logger.info("Initializing database schema...")
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables verified.")
+
+        # 2. Automatically seed initial 10 projects if empty
+        db = SessionLocal()
+        try:
+            count = seed_default_projects(db, force=False)
+            if count > 0:
+                logger.info(f"Database automatically populated with {count} initial DUROZEN projects.")
+        finally:
+            db.close()
+    except Exception as e:
+        logger.error(f"Error initializing database on startup: {e}")
+
+    yield
+    # Shutdown actions if any
+
+app = FastAPI(
+    title="DUROZEN Creative Portfolio API",
+    description="FastAPI Backend for DUROZEN Creative Portfolio Demo Sites and Admin Portal",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ],
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount Routes
+app.include_router(projects.router)
+app.include_router(auth.router)
+app.include_router(upload.router)
+
+# Mount Static Uploads directory
+UPLOADS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads")
+os.makedirs(UPLOADS_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
+
+# Mount Static Screenshots directory (from public/screenshots)
+WORKSPACE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PUBLIC_SCREENSHOTS = os.path.join(WORKSPACE_DIR, "public", "screenshots")
+os.makedirs(PUBLIC_SCREENSHOTS, exist_ok=True)
+app.mount("/screenshots", StaticFiles(directory=PUBLIC_SCREENSHOTS), name="screenshots")
+
+@app.get("/api/health")
+def health_check():
+    db_connected = False
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        db_connected = True
+    except Exception:
+        db_connected = False
+
+    return {
+        "status": "healthy",
+        "service": "DUROZEN Portfolio API",
+        "databaseConnected": db_connected,
+        "databaseType": "postgresql" if "postgresql" in str(engine.url) else "sqlite"
+    }
+
+@app.get("/")
+def root():
+    return {
+        "message": "Welcome to DUROZEN Creative Portfolio API",
+        "docs": "/docs",
+        "health": "/api/health"
+    }
+

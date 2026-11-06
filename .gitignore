@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+build/
+dist/
+coverage/
+
+# Python virtual environments & bytecode
+venv/
+.venv/
+backend/venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+durozen_local.db
+
+# OS & Logs
+.DS_Store
+Thumbs.db
+*.log
+.aistudio/
+
+# Environment Variables
+.env*
+!.env.example
+!backend/.env.example
