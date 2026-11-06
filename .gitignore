@@ -3,22 +3,33 @@ node_modules/
 build/
 dist/
 coverage/
+.vite/
 
 # Python virtual environments & bytecode
 venv/
 .venv/
 backend/venv/
+backend/.venv/
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .pytest_cache/
 
-# Databases
+# Databases & local storage
 *.db
 *.sqlite
 *.sqlite3
 durozen_local.db
+*.dump
+
+# Docker local overrides
+docker-compose.override.yml
+.docker/
+
+# Playwright & test reports
+test-results/
+playwright-report/
 
 # OS & Logs
 .DS_Store

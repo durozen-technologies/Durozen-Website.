@@ -1,6 +1,11 @@
 import os
 from dotenv import load_dotenv
 
+# Load .env from backend directory and/or workspace root
+_backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_root_dir = os.path.dirname(_backend_dir)
+load_dotenv(os.path.join(_root_dir, ".env"))
+load_dotenv(os.path.join(_backend_dir, ".env"))
 load_dotenv()
 
 class Settings:
@@ -16,7 +21,6 @@ class Settings:
             # Ensure psycopg2 driver is used if generic postgresql:// is provided
             return url.replace("postgresql://", "postgresql+psycopg2://", 1)
         return url
-    USE_SQLITE_FALLBACK: bool = os.getenv("USE_SQLITE_FALLBACK", "true").lower() in ("true", "1", "yes")
     
     SECRET_KEY: str = os.getenv("SECRET_KEY", "durozen-creative-portfolio-secret-key-change-in-production")
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")

@@ -90,7 +90,7 @@ def health_check():
         "status": "healthy",
         "service": "DUROZEN Portfolio API",
         "databaseConnected": db_connected,
-        "databaseType": "postgresql" if "postgresql" in str(engine.url) else "sqlite"
+        "databaseType": "postgresql"
     }
 
 @app.get("/")

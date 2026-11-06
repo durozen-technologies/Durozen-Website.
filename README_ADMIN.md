@@ -34,6 +34,33 @@ Visit:
 
 ---
 
+## 🐳 Docker & Docker Compose Quick Start (Recommended)
+
+Run the entire stack (PostgreSQL database, FastAPI backend, and Vite frontend) with a single command using multistage builder images:
+
+```bash
+# Build and start all services in detached mode
+docker compose up -d --build
+
+# View container logs
+docker compose logs -f
+
+# Check health and running status
+docker compose ps
+
+# Stop all services
+docker compose down
+```
+
+### Container Services & Ports:
+| Service | Container Name | Host Port | Internal Port | Technology |
+| :--- | :--- | :--- | :--- | :--- |
+| **Frontend** | `durozen-frontend` | `3000` | `80` | Vite + React + Nginx (Multistage) |
+| **Backend** | `durozen-backend` | `8000` | `8000` | Python 3.12 + FastAPI + Playwright (Multistage) |
+| **Database** | `durozen-db` | `5432` | `5432` | PostgreSQL 16 Alpine (Multistage) |
+
+---
+
 ## 🔐 Default Admin Credentials
 
 - **Username**: `admin`
@@ -49,7 +76,6 @@ In `backend/.env`, configure your PostgreSQL connection string:
 
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/durozen_db
-USE_SQLITE_FALLBACK=true
 ```
 
 ### Steps to create the local PostgreSQL database:
@@ -59,9 +85,6 @@ USE_SQLITE_FALLBACK=true
    ```
 2. Put your PostgreSQL username and password in `backend/.env`.
 3. Restart the backend (`npm run backend`). It will automatically connect and create the `projects` table!
-
-> **Note on Zero-Downtime Fallback:**
-> If your local PostgreSQL is not currently running, `USE_SQLITE_FALLBACK=true` allows the backend to automatically fall back to local storage (`durozen_local.db`) so development is never interrupted.
 
 ---
 
